@@ -1,13 +1,18 @@
-//ordinea operatiilor
+//sirul polonez
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-void e(char c[]);
 int val(char c);
+void p(char c[]);
+void transf2(char c[]);
 int main() {
-    char c[101];
+    char c[100],aux[2],u[100];
+    aux[1]='\0';
     scanf("%s",&c);
-    e(c);
+    printf("Sirul polonez:\n");
+    p(c);
+    printf("\nStivele din sirul polonez:\n");
+    strcpy(u,c);
+    transf2(u);
 }
 int val(char c)
 {
@@ -18,66 +23,98 @@ int val(char c)
     else if(c=='/' || c=='*')
         return 2;
 }
-void e(char c[]) {
-    int t = 0, nr_v = 0, v[100];
-    char d[100] ="#", s1[100], s2[100], aux[2];
-    aux[1] = '\0';
-    strcpy(d+strlen(d), c);
-    strcpy(d+strlen(d), "#"); //adaugam la inceput si sfarsit #
-    strcpy(c,d);
-    char op[] = "#+-*/";
-    s1[0]='\0';s2[0]='\0';
-    printf("%s\n",c);
-    for (int i = 0; i < strlen(c); i++) //parcurgem sirul si facem stivele
+
+void p(char c[])
+{
+    char s1[strlen(c)],s2[strlen(c)],aux[2];
+    aux[1]='\0';s1[0]='\0';s2[0]='\0';
+    char op[] = "+-*/";
+    int retine[100],poz=0,q=-1;
+    printf("C1    C2\n");
+    for(int i=0;i<strlen(c);i++)
     {
         if (strchr(op, c[i]) != NULL) {
-            if (strlen(s1) == 0) {
-                v[t] = val(c[i]) + nr_v;
+            if (strlen(s1) == 0)
+            {
                 aux[0] = c[i];
                 strcpy(s1+strlen(s1), aux);
                 //strcpy(s1,s1);
-            } else {
-                if ((val(c[i]) + nr_v) <= v[t]) {
-                    while ((val(c[i]) + nr_v) <= v[t] && t>=0) {
-                        printf("%s%c   %s\n",s1,c[i],s2);
-                        for (int k = strlen(s2) - 1; k > 0; k--)
-                            if (!strchr(op, s2[k]) && !strchr(op, s2[k - 1])) {
-                                char u[100];
-                                strcpy(u, s2 + k); // copiem de la pozitia k+1
-                                aux[0] = s1[t];
-                                strcpy(s2 + k, aux);//adaugam la primele k caractere din s2 operatorul
-                                strcat(s2, u);//actualizam stiva
-                                strcpy(s2,s2);
-                                s1[t] = '\0';
-                                break;
-                            }
-                        t--;
+            }
+            else
+            if(s1[strlen(s1)-1]=='(')
+            {
+                aux[0] = c[i];
+                strcpy(s1+strlen(s1), aux);
+                q=q+1;
+                retine[q]=strlen(s1)-1;
+            } else
+            if(s1[strlen(s1)-1]!=')') {
+                if (val(c[i]) <= val(s1[strlen(s1) - 1])) {
+                    while (val(c[i]) <= val(s1[strlen(s1) - 1]) && c[i] != '(' && s1[0]!='\0' && s1[strlen(s1)-1]!='(') {
+                        printf("%s    %s%c\n",s2,s1,c[i]);
+                        aux[0] = s1[strlen(s1) - 1];
+                        strcpy(s2+strlen(s2), aux);
+                        s1[strlen(s1)-1] ='\0';
+                        poz=strlen(s1)-1;
                     }
-                    t++;
-                    v[t] = val(c[i]) + nr_v;
                     aux[0] = c[i];
                     strcpy(s1+strlen(s1), aux);
-                }
-                else
-                {
-                    t++;
-                    v[t] = val(c[i]) + nr_v;
+                } else {
                     aux[0] = c[i];
-                    strcpy(s1+strlen(s1), aux);
-                    strcpy(s1,s1);
+                    strcat(s1, aux);
+                    printf("%s    %s\n",s2,s1);
                 }
             }
-        }
-        else
+        } else
         if(c[i]=='(')
-            nr_v+=10;
-        else
+        {
+            aux[0]=c[i];
+            strcpy(s1+strlen(s1),aux);
+        } else
         if(c[i]==')')
-            nr_v-=10;
-        else
+        {
+            printf("%s    %s%c\n",s2,s1,c[i]);
+            strcat(s2,strrev(s1+retine[q]));
+            s1[retine[q]-1]='\0';
+            q=q-1;
+            poz=strlen(s1)-1;
+        } else
         {
             aux[0] = c[i];
             strcpy(s2+strlen(s2), aux);
         }
+
     }
+    printf("%s   %s\n",s2,s1);
+    strcpy(s2+strlen(s2),strrev(s1));
+    printf("\nSirul polonez: %s\n",s2);
+    strcpy(c,s2);
+}
+void transf2(char c[]) {
+    char op[4] = "+/-*", aux[2], s2[strlen(c)];
+    aux[1] = '\0';
+    s2[0] = '\0';
+    int poz1 = 0;
+    for (int i = 0; i < strlen(c); i++) {
+        if (c[i]!='*' && c[i]!='/' && c[i]!='-' && c[i]!='+')
+        {
+            aux[0] = c[i];
+            strcpy(s2 + strlen(s2), aux);
+        }
+        else
+        {
+            poz1 = 0;
+            for (int o = 0; o < strlen(s2) - 1; o++)
+                if ((s2[o]!='+' && s2[o]!='-' && s2[o]!='/' && s2[o]!='*') && (s2[o+1]!='*' && s2[o+1]!='+' && s2[o+1]!='/' && s2[o+1]!='-'))
+                    poz1 = o;
+            char u[strlen(s2)];
+            printf("%s    %c\n",s2,c[i]);
+            aux[0] = c[i];
+            strcpy(u, s2 + poz1+1);
+            strcpy(s2 + poz1+1, aux);
+            strcpy(s2 + strlen(s2), u);
+            //printf("%s\n",s2);
+        }
+    }
+    printf("%s",s2);
 }
